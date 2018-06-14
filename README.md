@@ -50,8 +50,6 @@ Add a cat to the collection cats by providing a new cat resource in the request 
 POST /cats
 
 {
-    "id": "felix",
-    "type": "cat",
     "name": "felix",
     "breed": "minx",
     "owner": "George Jefferson",
