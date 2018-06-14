@@ -31,7 +31,12 @@ app.post('/cats', function(req, res, next) {
 
   if (isEmpty(newCat)) {
     // No cat in request body, send the 400 response status code and message to the client.
-    res.status(400).send(`You're missing a cat!`)
+    next(
+      new nodeHTTPError(
+        400,
+        `missing cat in request body. use a header of 'Content-Type' with a value of 'application/json'.  Be sure to provide valid JSON to represent the cat you wish to add.`
+      )
+    )
     return
   }
 
@@ -40,7 +45,8 @@ app.post('/cats', function(req, res, next) {
     newCat
   )
   if (not(isEmpty(missingFields))) {
-    res.status(400).send(createMissingFieldsMsg(missingFields))
+    // missing required fields
+    next(new nodeHTTPError(400, `${createMissingFieldsMsg(missingFields)}`))
     return
   }
 
