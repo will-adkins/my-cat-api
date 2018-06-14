@@ -12,7 +12,8 @@ const {
   isNil,
   filter,
   compose,
-  reject
+  reject,
+  propEq
 } = require('ramda')
 
 const bodyParser = require('body-parser')
@@ -26,13 +27,20 @@ const isCat = function(obj) {
 }
 
 const isCatInDatabase = (catId, database) =>
-  compose(not, isNil, find(cat => cat.id === catId), filter(isCat))(database)
+  compose(
+    not,
+    isNil,
+    find(cat => cat.id === catId),
+    filter(propEq('type', 'cat'))
+  )(database)
 
 app.use(bodyParser.json())
 
-app.get('/', function(req, res) {
-  res.send('Welcome to the CATS api, meow.')
-})
+app.get('/', (req, res) => res.send('Welcome to the CATS api, meow.'))
+
+app.get('/cats', (req, res, next) =>
+  res.send(filter(propEq('type', 'cat'), database))
+)
 
 app.delete('/cats/:catname', function(req, res, next) {
   if (isCatInDatabase(req.params.catname, database)) {
