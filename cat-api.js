@@ -11,7 +11,8 @@ const {
   not,
   isNil,
   filter,
-  compose
+  compose,
+  reject
 } = require('ramda')
 
 const bodyParser = require('body-parser')
@@ -20,10 +21,26 @@ const createMissingFieldsMsg = require('./lib/create-missing-field-msg')
 const cleanObj = require('./lib/clean-obj')
 const nodeHTTPError = require('node-http-error')
 
+const isCat = function(obj) {
+  return obj.type === 'cat'
+}
+
+const isCatInDatabase = (catId, database) =>
+  compose(not, isNil, find(cat => cat.id === catId), filter(isCat))(database)
+
 app.use(bodyParser.json())
 
 app.get('/', function(req, res) {
   res.send('Welcome to the CATS api, meow.')
+})
+
+app.delete('/cats/:catname', function(req, res, next) {
+  if (isCatInDatabase(req.params.catname, database)) {
+    database = reject(cat => cat.id === req.params.catname, database)
+    res.status(200).send('cat deleted')
+  } else {
+    next(new nodeHTTPError(404, 'Cat not found'))
+  }
 })
 
 app.post('/cats', function(req, res, next) {
@@ -59,13 +76,6 @@ app.post('/cats', function(req, res, next) {
 })
 
 app.get('/cats/:catname', (req, res, next) => {
-  const isCat = function(obj) {
-    return obj.type === 'cat'
-  }
-
-  const isCatInDatabase = (catId, database) =>
-    compose(not, isNil, find(cat => cat.id === catId), filter(isCat))(database)
-
   isCatInDatabase(req.params.catname, database)
     ? res.send(find(cat => cat.id === req.params.catname, database))
     : next(
