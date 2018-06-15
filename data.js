@@ -9,7 +9,8 @@ const database = [
     name: 'felix',
     breed: 'minx',
     owner: 'George Jefferson',
-    age: 10
+    age: 10,
+    isDeceased: false
   },
   {
     id: 'tootles',
@@ -17,7 +18,8 @@ const database = [
     name: 'tootles',
     breed: 'tabby',
     owner: 'Trip Ottinger',
-    age: 15
+    age: 15,
+    isDeceased: false
   },
   {
     id: 'abby',
@@ -25,7 +27,8 @@ const database = [
     name: 'abby',
     breed: 'siamese',
     owner: 'Sam Hunt',
-    age: 3
+    age: 3,
+    isDeceased: false
   },
   {
     id: 'garfield',
@@ -33,7 +36,8 @@ const database = [
     breed: 'maine coon',
     name: 'garfield',
     owner: 'Nancy Higgins',
-    age: 6
+    age: 6,
+    isDeceased: true
   }
 ]
 
