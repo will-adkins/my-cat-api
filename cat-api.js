@@ -13,7 +13,8 @@ const {
   filter,
   compose,
   reject,
-  propEq
+  propEq,
+  map
 } = require('ramda')
 
 const bodyParser = require('body-parser')
@@ -40,6 +41,10 @@ app.get('/', (req, res) => res.send('Welcome to the CATS api, meow.'))
 
 app.get('/cats', (req, res, next) =>
   res.send(filter(propEq('type', 'cat'), database))
+)
+
+app.get('/breeds', (req, res, next) =>
+  res.send(filter(propEq('type', 'breed'), database))
 )
 
 app.delete('/cats/:catname', function(req, res, next) {
@@ -91,8 +96,68 @@ app.get('/cats/:catname', (req, res, next) => {
           huh: 'dude, what are you doing?'
         })
       )
+})
 
-  //res.status(404).send('cat not found')
+app.put('/cats/:catname', function(req, res, next) {
+  // TODO: DONE No cat in request body, send the 400 response status code and message to the client.
+  // TODO: DONE Missing required fields send 400 response
+  // TODO: DONE Clean unnecessary prop
+  // TODO: id prop value in resource matches the name within in route/path
+
+  const newCat = propOr({}, 'body', req)
+
+  if (isEmpty(newCat)) {
+    // No cat in request body, send the 400 response status code and message to the client.
+    next(
+      new nodeHTTPError(
+        400,
+        `missing cat in request body. use a header of 'Content-Type' with a value of 'application/json'.  Be sure to provide valid JSON to represent the cat you wish to add.`
+      )
+    )
+    return
+  }
+
+  const missingFields = checkRequiredFields(
+    ['id', 'type', 'breed', 'name', 'owner', 'age'],
+    newCat
+  )
+
+  if (not(isEmpty(missingFields))) {
+    // missing required fields
+    next(new nodeHTTPError(400, `${createMissingFieldsMsg(missingFields)}`))
+    return
+  }
+
+  if (not(propEq('id', req.params.catname, newCat))) {
+    // something is wrong send a 400
+    next(
+      new nodeHTTPError(
+        400,
+        `The id of the cat in the URI path does not match the id property value. Ensure the id of the cat in the URI and the id value match and resend the request.`
+      )
+    )
+    return
+  }
+
+  const newNewCat = cleanObj(
+    ['breed', 'name', 'owner', 'age', 'id', 'type'],
+    newCat
+  )
+
+  if (isCatInDatabase(req.params.catname, database)) {
+    database = map(
+      obj =>
+        obj.id === req.params.catname && obj.type === 'cat' ? newNewCat : obj,
+      database
+    )
+    res.status(200).send('the cat was updated.')
+  } else {
+    next(
+      new nodeHTTPError(404, 'Cat not found', {
+        huh: 'dude, what are you doing?'
+      })
+    )
+  }
 })
 
 app.use(function(err, req, res, next) {
